@@ -1,0 +1,3 @@
+#!/bin/sh
+# Public-content check on staged files (enable with: git config core.hooksPath .githooks)
+exec node scripts/check-public.mjs --staged

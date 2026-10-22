@@ -1,0 +1,23 @@
+{
+  "name": "@bkn-workbuddy/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Host-independent logic for the OpenBKN WorkBuddy adapter: catalog, binding, lifecycle, transcript and provenance projections.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    }
+  },
+  "files": [
+    "dist/src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test dist/test/*.test.js"
+  }
+}

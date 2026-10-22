@@ -1,0 +1,12 @@
+node_modules/
+build/
+dist/
+*.bak
+*.log
+.DS_Store
+# probe run outputs may contain local paths; evidence lives in the internal repository
+probes/**/last-summary.md
+probes/**/build/
+# local test-platform settings (addresses, CA paths) never go into the public repository
+*.local.json
+.env.local

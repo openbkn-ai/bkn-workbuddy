@@ -1,0 +1,4 @@
+# Credential handling and permission boundaries need an owner's review.
+*                  @kalias
+/gateway/          @kalias
+/packages/bridge/  @kalias

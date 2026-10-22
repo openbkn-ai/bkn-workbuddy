@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "scene_id": "governed-business-analysis",
+  "contract_version": "read-v1",
+  "title": "受治理的业务分析",
+  "domain_notes": [
+    "回答前先确认问题涉及的业务对象与口径，只使用平台返回的数据。",
+    "数量、金额、状态等结论应说明对应的业务对象、筛选条件和统计口径。",
+    "平台没有返回数据时，明确说明没有数据，不推测或补全。"
+  ],
+  "required_capabilities": ["schema_search", "object_query", "relation_query", "metric_query"],
+  "starter_templates": [
+    { "text": "{network_name}里有哪些{object_type_name}？请说明数据来源。", "requires": ["object_query"] },
+    { "text": "{metric_name}按什么口径统计？目前的结果是多少？", "requires": ["metric_query"] },
+    { "text": "{relation_name}这层关系在业务上代表什么？请举一个实际例子。", "requires": ["relation_query"] }
+  ]
+}

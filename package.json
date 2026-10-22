@@ -1,0 +1,21 @@
+{
+  "name": "bkn-workbuddy",
+  "private": true,
+  "description": "OpenBKN business context for WorkBuddy: user-level hooks, a local MCP bridge and a signed credential gateway.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w packages/core && npm run build -w packages/bridge",
+    "test": "npm run test --workspaces --if-present",
+    "check:contract": "npm run build && npm test"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "typescript": "^5.9.0"
+  }
+}

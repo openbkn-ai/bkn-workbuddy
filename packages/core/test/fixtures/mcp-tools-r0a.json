@@ -1,0 +1,4739 @@
+{
+  "captured_at": "2026-09-28T12:49:51.142Z",
+  "base": "https://openbkn-ee.example.test",
+  "server": {
+    "name": "context-loader",
+    "version": "1.0.0"
+  },
+  "protocolVersion": "2025-06-18",
+  "agent_retrieval_image": "ghcr.io/openbkn-ai/agent-retrieval:0.1.4-hotfix-supply-sample-p1",
+  "toolkit_version_present": false,
+  "tool_count": 29,
+  "tools": [
+    {
+      "name": "bkn_finish_interaction",
+      "title": "结束交互",
+      "group": "lifecycle",
+      "order": 20,
+      "annotations": {},
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "description": "Provide the final answer when outcome is completed.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "interaction_id": {
+            "description": "Use the exact interaction_id returned by start.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "outcome": {
+            "description": "Set the final outcome for this turn.",
+            "enum": [
+              "completed",
+              "failed",
+              "cancelled",
+              "handed_off"
+            ],
+            "type": "string"
+          },
+          "reason": {
+            "description": "Briefly explain a non-completed outcome.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "interaction_id",
+          "outcome"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "conversation_id": {
+            "type": "string"
+          },
+          "evidence_status": {
+            "enum": [
+              "not_applicable",
+              "assembling",
+              "complete",
+              "partial",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "execution_status": {
+            "enum": [
+              "completed",
+              "failed",
+              "canceled",
+              "handed_off",
+              "abandoned"
+            ],
+            "type": "string"
+          },
+          "interaction_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "interaction_id",
+          "conversation_id",
+          "execution_status",
+          "evidence_status"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "bkn_start_interaction",
+      "title": "开始交互",
+      "group": "lifecycle",
+      "order": 10,
+      "annotations": {},
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "agent_name": {
+            "description": "The current Agent's stable name. Provide the same value on every call in the same conversation_id.",
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "conversation_id": {
+            "description": "For continue, copy the conversation_id returned by start. Omit for new. A host mapping is authoritative.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "conversation_mode": {
+            "description": "Use new without conversation_id if no managed Conversation exists; otherwise continue with the ID returned by start.",
+            "enum": [
+              "continue",
+              "new"
+            ],
+            "type": "string"
+          },
+          "question": {
+            "description": "Use the user's question for this turn.",
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "conversation_mode",
+          "question",
+          "agent_name"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "conversation_id": {
+            "type": "string"
+          },
+          "execution_status": {
+            "enum": [
+              "active"
+            ],
+            "type": "string"
+          },
+          "interaction_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "interaction_id",
+          "conversation_id",
+          "execution_status"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "describe_resource",
+      "title": "数据资源详情",
+      "group": "resource",
+      "order": 420,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "resource_id": {
+            "description": "资源 ID（取自 list_resources 的 resource_id）。",
+            "type": "string"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "resource_id",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "resource_id": {
+            "type": "string"
+          },
+          "connector_type": {
+            "type": "string",
+            "description": "连接器类型（mysql / mariadb / postgresql / sqlserver）。"
+          },
+          "columns": {
+            "type": "array",
+            "description": "物理列。写 run_sql 时列名用此处的 name。",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "物理列名"
+                },
+                "type": {
+                  "type": "string",
+                  "description": "列数据类型"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "列说明（可空）"
+                }
+              },
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "execute_action",
+      "title": "执行行动",
+      "group": "action",
+      "order": 320,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "_instance_identities": {
+            "description": "目标实例列表；为空时由行动驱动按行动条件扫描全部匹配实例。每个元素需从 query_object_instance 或 query_instance_subgraph 的 _instance_identity 字段提取，不可臆造。",
+            "items": {
+              "additionalProperties": true,
+              "description": "实例标识对象，包含动态的属性键值对",
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "at_id": {
+            "description": "行动类型 ID，由 search_schema 或 get_kn_detail 返回。",
+            "type": "string"
+          },
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "dynamic_params": {
+            "additionalProperties": true,
+            "description": "行动的动态参数值（对应行动类型中 value_from=input 的参数）。请先调用 get_action_info 获取该行动的 dynamic_params schema 与参数名，再在此按名逐个填入真实值。注意：每个参数是独立的键，不要把多个参数名拼成一个键。",
+            "type": "object"
+          },
+          "kn_id": {
+            "description": "知识网络 ID。也可改用 X-Kn-ID 请求头传入。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kn_id",
+          "at_id",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "execution_id": {
+            "type": "string",
+            "description": "本次执行的 ID，可用于查询执行状态与结果"
+          },
+          "status": {
+            "type": "string",
+            "description": "执行状态，提交后通常为 pending"
+          },
+          "message": {
+            "type": "string",
+            "description": "提交结果说明"
+          },
+          "created_at": {
+            "type": "integer",
+            "description": "提交时间（Unix 毫秒）"
+          }
+        }
+      }
+    },
+    {
+      "name": "execute_published_tool",
+      "title": "执行已发布函数",
+      "group": "execution",
+      "order": 600,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "arguments": {
+            "description": "Business parameters defined by the published Function schema.",
+            "type": "object"
+          },
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "tool_id": {
+            "description": "Enabled Function tool ID in that Toolbox.",
+            "type": "string"
+          },
+          "toolbox_id": {
+            "description": "Published Toolbox ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "toolbox_id",
+          "tool_id",
+          "arguments",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "The published Toolbox function response."
+      }
+    },
+    {
+      "name": "explore_subgraph",
+      "title": "子图探索",
+      "group": "query",
+      "order": 225,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "concept_groups": {
+            "description": "概念分组 ID 数组，把探索范围限定在这些分组内的概念上。不传则不限范围。",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "condition": {
+            "additionalProperties": false,
+            "description": "起点对象类的过滤条件，结构与 query_object_instance 的 condition 完全一致（operation 必填；比较算子配 field + value + value_from=const；and/or 配 sub_conditions 递归嵌套）。只作用于**起点**，不过滤路径上的其他对象类。不传则以该对象类的全部实例为起点（受 limit 限制）。",
+            "properties": {
+              "field": {
+                "description": "字段名（起点对象类的属性）",
+                "type": "string"
+              },
+              "operation": {
+                "description": "条件操作符，取值规则与 query_object_instance 相同：比较算子按属性 type 判断，索引算子 match / knn 以该属性的 condition_operations 为准。",
+                "type": "string"
+              },
+              "sub_conditions": {
+                "description": "子条件数组，用于 and/or",
+                "items": {
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "value": {
+                "description": "字段值；单值算子用单值，in/not_in 用数组，range/out_range 用 [min, max]，exist/not_exist 不传",
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "boolean"
+                        }
+                      ]
+                    },
+                    "type": "array"
+                  }
+                ]
+              },
+              "value_from": {
+                "description": "值来源，仅支持 const",
+                "enum": [
+                  "const"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation"
+            ],
+            "type": "object"
+          },
+          "direction": {
+            "description": "探索方向。forward 只沿关系定义的出边走，backward 只沿入边走，bidirectional 两个方向都走。不确定关系是怎么定义的就用 bidirectional。",
+            "enum": [
+              "forward",
+              "backward",
+              "bidirectional"
+            ],
+            "type": "string"
+          },
+          "include_incomplete_path": {
+            "default": false,
+            "description": "是否返回残缺路径——已走过至少一条边、但没走满 path_length 就无路可走的那些。默认 false 只返回完整路径。想知道「到底连到了哪儿为止」时打开。零边路径任何情况下都不返回。",
+            "type": "boolean"
+          },
+          "include_logic_params": {
+            "description": "是否返回逻辑属性的计算参数，默认 false",
+            "type": "boolean"
+          },
+          "kn_id": {
+            "description": "知识网络 ID。也可改用 X-Kn-ID 请求头传入。",
+            "type": "string"
+          },
+          "limit": {
+            "description": "**起点对象类**的实例数量上限，默认 10。不是返回路径的条数上限，也不是对象总数上限。",
+            "type": "integer"
+          },
+          "offset": {
+            "description": "**起点对象类**的偏移翻页：跳过前 N 个起点。与 search_after 互斥。",
+            "type": "integer"
+          },
+          "path_length": {
+            "description": "最大跳数，取 1-3，超出返回 400。路径数随跳数快速增长，先从 1-2 起步，不够再加。",
+            "maximum": 3,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          },
+          "search_after": {
+            "description": "**起点对象类**的游标翻页：传上一次响应返回的 search_after 取下一批起点；首次不传。与 offset 互斥。",
+            "items": {},
+            "type": "array"
+          },
+          "sort": {
+            "description": "**起点对象类**的排序字段，按数组顺序依次比较。与 limit 配合决定「从哪些起点出发」，不影响路径本身的顺序。",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "direction": {
+                  "description": "排序方向",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "type": "string"
+                },
+                "field": {
+                  "description": "排序字段（起点对象类的属性名）",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "field",
+                "direction"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "source_object_type_id": {
+            "description": "探索起点的对象类 ID。用 search_schema 或 get_object_types 先确认。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kn_id",
+          "source_object_type_id",
+          "direction",
+          "path_length",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "objects": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "参与了关系的对象，key 是对象 id，value 含 object_type_id / _instance_identity / _display / properties。"
+          },
+          "isolated_objects": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "没有建立任何关系的孤立对象。**这是有效结论不是失败**：它明确回答了「这些起点在给定方向与跳数内没有关联」，不要因为这里有值就重试或改问法。"
+          },
+          "relation_paths": {
+            "type": "array",
+            "description": "具体的关系路径。每条含 relations 数组（relation_type_id / source_object_id / target_object_id）与 length（边数）。对象详情去 objects 里按 id 查。",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "total_count": {
+            "type": "integer",
+            "description": "**起点对象类**的命中总数，不受 limit 限制，与路径条数或对象总数无关。零命中时是 0（有值）。字段缺失表示本次没有计算总数——用 search_after 翻页时第二页起即如此——不能推断为 0。"
+          },
+          "search_after": {
+            "type": "array",
+            "items": {},
+            "description": "起点对象类的下一页游标：非空时作为下次请求的 search_after 传入以取下一批起点；为空表示起点已取完。"
+          }
+        }
+      }
+    },
+    {
+      "name": "find_skills",
+      "title": "技能召回",
+      "group": "skill",
+      "order": 510,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "instance_identities": {
+            "description": "实例标识列表（可选）。提供时进一步缩小至具体实例关联的技能",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "kn_id": {
+            "description": "知识网络 ID。也可改用 X-Kn-ID 请求头传入。",
+            "type": "string"
+          },
+          "object_type_id": {
+            "description": "对象类型 ID（必填）。当前版本仅支持对象类级或实例级技能召回，且该对象类型必须存在于当前知识网络中",
+            "type": "string"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          },
+          "skill_query": {
+            "description": "技能查询关键词（可选）。用于语义匹配过滤技能",
+            "type": "string"
+          },
+          "top_k": {
+            "default": 10,
+            "description": "返回的最大技能数量，默认 10",
+            "maximum": 20,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kn_id",
+          "object_type_id",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "description": "匹配的技能列表",
+            "items": {
+              "type": "object",
+              "properties": {
+                "skill_id": {
+                  "type": "string",
+                  "description": "技能 ID"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "技能名称"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "技能描述"
+                }
+              }
+            }
+          },
+          "message": {
+            "type": "string",
+            "description": "空结果说明信息，仅当 entries 为空时出现，说明原因和下一步建议"
+          }
+        }
+      }
+    },
+    {
+      "name": "get_action_execution",
+      "title": "执行结果",
+      "group": "action",
+      "order": 330,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "execution_id": {
+            "description": "行动执行 ID，由 execute_action 返回。",
+            "type": "string"
+          },
+          "kn_id": {
+            "description": "知识网络 ID。也可改用 X-Kn-ID 请求头传入。",
+            "type": "string"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "响应格式：json 或 toon，默认 toon（更省 token）。",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kn_id",
+          "execution_id",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "单次行动执行的详情，含整体状态与逐对象结果。",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "执行 ID"
+          },
+          "status": {
+            "type": "string",
+            "description": "整体状态：pending/running/completed/failed/cancelled"
+          },
+          "total_count": {
+            "type": "integer",
+            "description": "本次执行涉及的对象总数"
+          },
+          "success_count": {
+            "type": "integer",
+            "description": "成功对象数"
+          },
+          "failed_count": {
+            "type": "integer",
+            "description": "失败对象数"
+          },
+          "results": {
+            "type": "array",
+            "description": "逐对象执行结果（含 status、parameters、result/error 等）",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    {
+      "name": "get_action_info",
+      "title": "行动信息",
+      "group": "action",
+      "order": 310,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "_instance_identities": {
+            "description": "对象实例标识列表（可选）。每个元素必须从 query_object_instance 或 query_instance_subgraph 的 _instance_identity 字段提取，不可臆造。",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "at_id": {
+            "description": "行动类型ID",
+            "type": "string"
+          },
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "kn_id": {
+            "description": "知识网络 ID。也可改用 X-Kn-ID 请求头传入。",
+            "type": "string"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kn_id",
+          "at_id",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "headers": {
+            "type": "object",
+            "description": "返回的 Header 信息",
+            "additionalProperties": true
+          },
+          "_dynamic_tools": {
+            "type": "array",
+            "description": "动态工具定义列表。每项含 parameters（入参 schema，动态参数在 parameters.properties.dynamic_params 下）；工具声明了输出契约时还含 output_schema，即执行成功后 result 字段的形状，用它把执行结果复述成自然语言。",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "get_kn_detail",
+      "title": "网络结构",
+      "group": "discovery",
+      "order": 120,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "detail_level": {
+            "default": "summary",
+            "description": "详情级别。summary（默认）：对象类/关系类/行动类骨架 + 每个属性仅 name+type（扁平同构，TOON 渲染成紧凑表格），不含 display_name/comment/字段映射/查询算子/映射规则，足够理解 schema 与规划查询；需要某对象完整字段映射（含 comment）改调 get_object_types，要关系 mapping_rules 改调 get_relation_types。full：一次返回全量（体积大，慎用）。",
+            "enum": [
+              "summary",
+              "full"
+            ],
+            "type": "string"
+          },
+          "kn_id": {
+            "description": "知识网络 ID。也可改用 X-Kn-ID 请求头传入。",
+            "type": "string"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kn_id",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "知识网络 ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "知识网络名称"
+          },
+          "comment": {
+            "type": "string",
+            "description": "描述"
+          },
+          "concept_groups": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "概念分组 ID，可传给 search_instance 的 concept_groups"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "分组名"
+                },
+                "object_type_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "组内对象类 ID"
+                }
+              },
+              "additionalProperties": true
+            },
+            "description": "概念组"
+          },
+          "object_types": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "对象类 ID。注意 search_schema 同类返回里叫 concept_id。"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "对象类名。同上，search_schema 那边叫 concept_name。"
+                },
+                "comment": {
+                  "type": "string",
+                  "description": "说明；仅 detail_level=full 时出现——默认的 summary 只给骨架与 name+type 的属性表，照这一条去取会拿到 None，要完整字段映射改调 get_object_types"
+                },
+                "data_source": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "绑定的数据资源 {type, id, name}；仅 detail_level=full 时出现——默认的 summary 只给骨架与 name+type 的属性表，照这一条去取会拿到 None，要完整字段映射改调 get_object_types"
+                },
+                "data_properties": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "description": "数据属性 [{name, type, condition_operations}]；仅 detail_level=full 时出现——默认的 summary 只给骨架与 name+type 的属性表，照这一条去取会拿到 None，要完整字段映射改调 get_object_types"
+                },
+                "primary_keys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "主键属性名；仅 detail_level=full 时出现——默认的 summary 只给骨架与 name+type 的属性表，照这一条去取会拿到 None，要完整字段映射改调 get_object_types"
+                }
+              },
+              "additionalProperties": true
+            },
+            "description": "对象类型（含 data_source 等）。related_metric_count 为该对象类下已建模指标数，>0 时可用 get_object_types 下钻拿 related_metrics 明细"
+          },
+          "relation_types": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "关系类 ID"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "关系名"
+                },
+                "comment": {
+                  "type": "string",
+                  "description": "说明；仅 detail_level=full 时出现——默认的 summary 只给骨架与 name+type 的属性表，照这一条去取会拿到 None，要完整字段映射改调 get_object_types"
+                },
+                "source_object_type_id": {
+                  "type": "string",
+                  "description": "起点对象类 ID"
+                },
+                "target_object_type_id": {
+                  "type": "string",
+                  "description": "终点对象类 ID"
+                }
+              },
+              "additionalProperties": true
+            },
+            "description": "关系类型"
+          },
+          "action_types": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "行动类 ID"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "行动名"
+                },
+                "comment": {
+                  "type": "string",
+                  "description": "说明；仅 detail_level=full 时出现——默认的 summary 只给骨架与 name+type 的属性表，照这一条去取会拿到 None，要完整字段映射改调 get_object_types"
+                },
+                "object_type_id": {
+                  "type": "string",
+                  "description": "所属对象类 ID"
+                }
+              },
+              "additionalProperties": true
+            },
+            "description": "行动类型"
+          }
+        }
+      }
+    },
+    {
+      "name": "get_logic_properties_values",
+      "title": "逻辑属性计算",
+      "group": "query",
+      "order": 230,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "_instance_identities": {
+            "description": "对象实例标识数组。必须从 query_object_instance 或 query_instance_subgraph 的 _instance_identity 字段提取，不可臆造。按原顺序组成数组。",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "additional_context": {
+            "description": "可选。补充 timezone、instant、step 等上下文",
+            "type": "string"
+          },
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "kn_id": {
+            "description": "知识网络 ID。也可改用 X-Kn-ID 请求头传入。",
+            "type": "string"
+          },
+          "llm_model": {
+            "description": "可选。覆盖动态参数生成所用大模型；为空走系统默认大模型。仅供测试/验证指定模型。",
+            "type": "string"
+          },
+          "ot_id": {
+            "description": "对象类型ID",
+            "type": "string"
+          },
+          "properties": {
+            "description": "逻辑属性名列表（metric/operator）。必须为 Schema 中存在的逻辑属性",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "query": {
+            "description": "用户查询，需含时间、统计维度、业务上下文",
+            "type": "string"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kn_id",
+          "ot_id",
+          "query",
+          "_instance_identities",
+          "properties",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "datas": {
+            "type": "array",
+            "description": "逻辑属性结果列表",
+            "items": {
+              "type": "object",
+              "properties": {
+                "_display": {
+                  "type": "string",
+                  "description": "给人看的展示名，由服务端按对象类的展示字段挑出。"
+                },
+                "_instance_id": {
+                  "type": "string",
+                  "description": "实例全局唯一 ID，可直接用于 query_instance_subgraph。"
+                },
+                "_instance_identity": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "构成该实例主键的字段值"
+                }
+              },
+              "additionalProperties": true,
+              "description": "其余键即该对象类的属性名，随对象类而变——先看 get_object_types / search_schema 的 data_properties，不要凭字段语义猜。"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "get_object_types",
+      "title": "对象类详情",
+      "group": "discovery",
+      "order": 140,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "ids": {
+            "description": "要展开的对象类 id（取自 get_kn_detail summary 的 object_types[].id，也接受 name）。支持多个，一次批量取回。",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "kn_id": {
+            "description": "知识网络 ID。也可改用 X-Kn-ID 请求头传入。",
+            "type": "string"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kn_id",
+          "ids",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "kn_id": {
+            "type": "string",
+            "description": "知识网络 ID"
+          },
+          "object_types": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "对象类 ID。注意 search_schema 同类返回里叫 concept_id。"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "对象类名。同上，search_schema 那边叫 concept_name。"
+                },
+                "comment": {
+                  "type": "string",
+                  "description": "说明"
+                },
+                "data_source": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "绑定的数据资源 {type, id, name}"
+                },
+                "data_properties": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "description": "数据属性 [{name, type, condition_operations}]"
+                },
+                "primary_keys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "主键属性名"
+                }
+              },
+              "additionalProperties": true
+            },
+            "description": "对象类完整定义（含 data_properties 的 mapped_field / condition_operations、logic_properties 的 data_source / parameters）。其中 condition_operations 只列索引带来的算子（match / multi_match / knn），比较算子按属性 type 自行判断，详见 query_object_instance 的 condition 说明。related_metrics 为该对象类 scope 下的全部指标（id/name/comment/unit/metric_type/analysis_dimensions/time_dimension），含未绑逻辑属性的：实例级且已绑逻辑属性用 get_logic_properties_values 算，其余把 id 传给 query_metric 算。"
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "请求了但未匹配到的 id"
+          }
+        }
+      }
+    },
+    {
+      "name": "get_relation_types",
+      "title": "关系类详情",
+      "group": "discovery",
+      "order": 150,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "ids": {
+            "description": "要展开的关系类 id（取自 get_kn_detail summary 的 relation_types[].id，也接受 name）。支持多个，一次批量取回。",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "kn_id": {
+            "description": "知识网络 ID。也可改用 X-Kn-ID 请求头传入。",
+            "type": "string"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kn_id",
+          "ids",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "kn_id": {
+            "type": "string",
+            "description": "知识网络 ID"
+          },
+          "relation_types": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "关系类 ID"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "关系名"
+                },
+                "comment": {
+                  "type": "string",
+                  "description": "说明"
+                },
+                "source_object_type_id": {
+                  "type": "string",
+                  "description": "起点对象类 ID"
+                },
+                "target_object_type_id": {
+                  "type": "string",
+                  "description": "终点对象类 ID"
+                }
+              },
+              "additionalProperties": true
+            },
+            "description": "关系类完整定义（含 mapping_rules、source/target 对象名）"
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "请求了但未匹配到的 id"
+          }
+        }
+      }
+    },
+    {
+      "name": "get_skill_content",
+      "title": "技能内容",
+      "group": "skill",
+      "order": 530,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          },
+          "skill_id": {
+            "description": "技能 ID（取自 list_skills 或 find_skills 的 skill_id）。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "skill_id",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "skill_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "技能状态（published 等）"
+          },
+          "content": {
+            "type": "string",
+            "description": "SKILL.md 正文（技能的使用说明与入口命令）"
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "正文是否因超长被截断"
+          },
+          "files": {
+            "type": "array",
+            "description": "技能包内的文件清单。需要哪个文件的内容再用 read_skill_file 取，不必整包读。",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rel_path": {
+                  "type": "string",
+                  "description": "包内相对路径，read_skill_file 的 rel_path 用此值"
+                },
+                "file_type": {
+                  "type": "string"
+                },
+                "size": {
+                  "type": "integer",
+                  "description": "字节数"
+                },
+                "mime_type": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "message": {
+            "type": "string",
+            "description": "补充说明（如截断提示）"
+          }
+        }
+      }
+    },
+    {
+      "name": "list_action_executions",
+      "title": "执行历史",
+      "group": "action",
+      "order": 340,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "action_type_id": {
+            "description": "按行动类型 ID 过滤（可选）。",
+            "type": "string"
+          },
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "kn_id": {
+            "description": "知识网络 ID。也可改用 X-Kn-ID 请求头传入。",
+            "type": "string"
+          },
+          "limit": {
+            "description": "分页条数（可选），默认 20，最大 1000。",
+            "type": "integer"
+          },
+          "offset": {
+            "description": "分页偏移（可选）。",
+            "type": "integer"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "响应格式：json 或 toon，默认 toon（更省 token）。",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          },
+          "search_after": {
+            "description": "游标分页（可选）：将上一页响应返回的 search_after 原样传入以获取下一页，比 offset 更适合深翻页。",
+            "items": {},
+            "type": "array"
+          },
+          "start_time_from": {
+            "description": "起始时间下界（Unix 毫秒，可选）。",
+            "type": "integer"
+          },
+          "start_time_to": {
+            "description": "起始时间上界（Unix 毫秒，可选）。",
+            "type": "integer"
+          },
+          "status": {
+            "description": "按执行状态过滤（可选）：pending/running/completed/failed/cancelled。",
+            "type": "string"
+          },
+          "trigger_type": {
+            "description": "按触发方式过滤（可选）：manual/scheduled。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kn_id",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "行动执行历史列表（分页）。",
+        "properties": {
+          "total_count": {
+            "type": "integer",
+            "description": "匹配的执行总数"
+          },
+          "entries": {
+            "type": "array",
+            "description": "执行记录列表（每条含 id、action_type_id、status、计数、时间等概览字段；action_type_snapshot 等重货已剔除以省 token）",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "search_after": {
+            "type": "array",
+            "description": "分页游标；将本值作为下一页请求的 search_after 传入以继续翻页",
+            "items": {}
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    {
+      "name": "list_knowledge_networks",
+      "title": "知识网络列表",
+      "group": "discovery",
+      "order": 110,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "direction": {
+            "description": "排序方向，默认 desc",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "type": "string"
+          },
+          "limit": {
+            "description": "单页数量，默认 20",
+            "type": "integer"
+          },
+          "name_pattern": {
+            "description": "按知识网络名称模糊过滤，可选",
+            "type": "string"
+          },
+          "offset": {
+            "description": "偏移量，用于翻页，默认 0",
+            "type": "integer"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          },
+          "sort": {
+            "description": "排序字段，默认 update_time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "description": "知识网络列表",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "知识网络 ID（即 kn_id，供其余查询工具使用）"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "知识网络名称"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "描述"
+                },
+                "module_type": {
+                  "type": "string",
+                  "description": "模块类型"
+                },
+                "business_domain": {
+                  "type": "string",
+                  "description": "业务域"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "total_count": {
+            "type": "integer",
+            "description": "命中总数"
+          }
+        }
+      }
+    },
+    {
+      "name": "list_published_toolboxes",
+      "title": "查找已发布函数工具箱",
+      "group": "discovery",
+      "order": 146,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "keyword": {
+            "description": "可选：按工具箱名称筛选。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "toolboxes": {
+            "type": "array",
+            "description": "当前调用者可见的已发布函数工具箱；每项含 toolbox_id、name、description。"
+          }
+        }
+      }
+    },
+    {
+      "name": "list_published_tools",
+      "title": "查看已发布函数",
+      "group": "discovery",
+      "order": 147,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "toolbox_id": {
+            "description": "由 list_published_toolboxes 返回的工具箱 ID。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "toolbox_id",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "toolbox_id": {
+            "type": "string"
+          },
+          "tools": {
+            "type": "array",
+            "description": "该工具箱内已启用函数；每项含 tool_id、名称、说明、使用规则及已裁剪的 input_schema。"
+          }
+        }
+      }
+    },
+    {
+      "name": "list_resources",
+      "title": "数据资源列表",
+      "group": "resource",
+      "order": 410,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "catalog_id": {
+            "description": "可选。限定某数据目录（catalog）下的资源。传了 kn_id 时忽略。",
+            "type": "string"
+          },
+          "kn_id": {
+            "description": "可选。只列该知识网络已绑定的数据资源（对象类的 data_source）。传了它就一次全返，catalog_id / offset / limit 一律忽略；要「这张网有哪些表」就传它，别用分页去捞。",
+            "type": "string"
+          },
+          "limit": {
+            "description": "可选。分页大小，默认 20。传了 kn_id 时忽略。",
+            "type": "integer"
+          },
+          "offset": {
+            "description": "可选。分页偏移，默认 0。传了 kn_id 时忽略。",
+            "type": "integer"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          },
+          "type": {
+            "description": "可选。按资源类别过滤（table / file / fileset / api / metric / topic / index / logicview / dataset）。与 kn_id 同时传时，对该网络绑定的资源生效。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "description": "资源列表（仅含当前账户有权查看的资源）",
+            "items": {
+              "type": "object",
+              "properties": {
+                "resource_id": {
+                  "type": "string",
+                  "description": "资源 ID，写 run_sql 时用作 {{.<resource_id>}} 占位符"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "资源名"
+                },
+                "type": {
+                  "type": "string",
+                  "description": "资源类别（table / file / ...）"
+                },
+                "status": {
+                  "type": "string",
+                  "description": "状态（active / stale / disabled / deprecated）"
+                },
+                "catalog_id": {
+                  "type": "string",
+                  "description": "所属数据目录 ID"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "total_count": {
+            "type": "integer",
+            "description": "符合过滤条件的资源总数；传 kn_id 时即 entries 条数（已按资源去重）"
+          },
+          "unbound": {
+            "type": "array",
+            "description": "仅 kn_id 查询：这些对象类还没绑数据源，需要先去建模绑定",
+            "items": {
+              "type": "object",
+              "properties": {
+                "object_type_id": {
+                  "type": "string",
+                  "description": "对象类 ID"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "stale_binding": {
+            "type": "array",
+            "description": "仅 kn_id 查询：这些对象类绑的是已废弃的数据源形态（如 data_view），需要重绑到 resource",
+            "items": {
+              "type": "object",
+              "properties": {
+                "object_type_id": {
+                  "type": "string",
+                  "description": "对象类 ID"
+                },
+                "resource_id": {
+                  "type": "string",
+                  "description": "绑定里记录的 ID"
+                },
+                "source_type": {
+                  "type": "string",
+                  "description": "绑定声明的 data_source.type"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "missing": {
+            "type": "array",
+            "description": "仅 kn_id 查询：绑定的资源取不回来——资源已删，或当前账户无权查看",
+            "items": {
+              "type": "object",
+              "properties": {
+                "object_type_id": {
+                  "type": "string",
+                  "description": "对象类 ID"
+                },
+                "resource_id": {
+                  "type": "string",
+                  "description": "绑定的资源 ID"
+                },
+                "reason": {
+                  "type": "string",
+                  "description": "取不回来的原因"
+                }
+              },
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "list_skills",
+      "title": "技能列表",
+      "group": "skill",
+      "order": 520,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "category": {
+            "description": "可选。按技能分类过滤。",
+            "type": "string"
+          },
+          "name": {
+            "description": "可选。按技能名称模糊过滤。",
+            "type": "string"
+          },
+          "page": {
+            "description": "可选。页码，从 1 开始，默认 1。",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "page_size": {
+            "description": "可选。每页大小，默认 20。",
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "description": "已发布的技能列表",
+            "items": {
+              "type": "object",
+              "properties": {
+                "skill_id": {
+                  "type": "string",
+                  "description": "技能 ID，供 get_skill_content / read_skill_file / execute_skill 使用"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "技能名"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "技能描述"
+                },
+                "version": {
+                  "type": "string",
+                  "description": "已发布版本"
+                },
+                "category": {
+                  "type": "string",
+                  "description": "技能分类"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "total_count": {
+            "type": "integer",
+            "description": "符合过滤条件的技能总数"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string",
+            "description": "空结果说明，仅当 entries 为空时出现"
+          }
+        }
+      }
+    },
+    {
+      "name": "query_instance_subgraph",
+      "title": "子图查询",
+      "group": "query",
+      "order": 220,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "include_logic_params": {
+            "description": "是否返回逻辑属性计算参数，默认 false",
+            "type": "boolean"
+          },
+          "kn_id": {
+            "description": "知识网络 ID。也可改用 X-Kn-ID 请求头传入。",
+            "type": "string"
+          },
+          "relation_type_paths": {
+            "description": "关系路径模板。object_types 与 relation_types 的顺序必须严格对应：n 跳路径 => object_types 长度为 n+1，relation_types 长度为 n；relation_types 不可为空。节点上的过滤条件取值规则：like/not_like 是字面子串（不要自己拼 %，未转义的 % 会被拒），regex 的锚定与大小写敏感性随资源存储而变（「包含」写 .*词.*）",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "limit": {
+                  "description": "当前路径返回的路径数量限制（可选）",
+                  "type": "integer"
+                },
+                "object_types": {
+                  "description": "路径中的对象类集合，顺序必须严格与路径一致。对于 n 跳路径，object_types 长度必须为 n+1。即使没有过滤条件，也必须提供 condition 与 limit 字段",
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "condition": {
+                        "additionalProperties": false,
+                        "description": "过滤条件。operation 必填；value_from 仅支持 const，且必须与 value 同时出现。若无过滤条件，可用 operation=and 且 sub_conditions=[]",
+                        "properties": {
+                          "field": {
+                            "description": "字段名（对象类属性）",
+                            "type": "string"
+                          },
+                          "operation": {
+                            "description": "条件操作符。比较算子按属性 type 判断，不会出现在 condition_operations 里：字符串类（string/keyword/text）可用 == != in not_in > >= < <= like not_like regex，数值/日期时间类可用 == != in not_in > >= < <= range out_range 但不支持 like/regex，exist/not_exist 任意类型可用且不带 value；索引算子 match 以属性的 condition_operations 为准（含 match 才建了全文索引）。属性上没有 condition_operations 这个键只说明没建索引，不代表不能过滤。like/not_like 的值是字面子串（不是 SQL LIKE 模式，不要自己拼 %，未转义的 % 会被拒），regex 的锚定与大小写敏感性随资源存储而变（「包含」写 .*词.*）",
+                            "enum": [
+                              "and",
+                              "or",
+                              "==",
+                              "!=",
+                              ">",
+                              ">=",
+                              "<",
+                              "<=",
+                              "in",
+                              "not_in",
+                              "like",
+                              "not_like",
+                              "range",
+                              "out_range",
+                              "regex",
+                              "exist",
+                              "not_exist",
+                              "match"
+                            ],
+                            "type": "string"
+                          },
+                          "sub_conditions": {
+                            "description": "子条件数组，用于 and/or",
+                            "items": {
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "value": {
+                            "description": "字段值；与 value_from=const 同时使用。单值算子用单值；in/not_in 用数组；range 用 [min, max]（两元素同类型，两端都闭）；out_range 同样用 [min, max]，排除这个闭区间；like/not_like 用字面子串（不是 SQL LIKE 模式，不要自己拼 %，未转义的 % 会被拒，\\% 匹配 % 字符本身）；regex 用正则字符串（锚定与大小写敏感性随资源存储而变，「包含」写 .*词.*）；exist/not_exist 不传 value",
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "items": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "boolean"
+                                    }
+                                  ]
+                                },
+                                "type": "array"
+                              }
+                            ]
+                          },
+                          "value_from": {
+                            "description": "值来源，仅支持 const",
+                            "enum": [
+                              "const"
+                            ],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "operation"
+                        ],
+                        "type": "object"
+                      },
+                      "id": {
+                        "description": "对象类 id（ot_id）",
+                        "type": "string"
+                      },
+                      "limit": {
+                        "description": "当前对象类返回数量限制，范围以接口定义为准（通常 1-10000）",
+                        "type": "integer"
+                      },
+                      "sort": {
+                        "description": "排序字段（可选）",
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "direction": {
+                              "description": "排序方向",
+                              "enum": [
+                                "desc",
+                                "asc"
+                              ],
+                              "type": "string"
+                            },
+                            "field": {
+                              "description": "排序字段",
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "field",
+                            "direction"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "condition",
+                      "limit"
+                    ],
+                    "type": "object"
+                  },
+                  "minItems": 2,
+                  "type": "array"
+                },
+                "relation_types": {
+                  "description": "路径中的边集合，顺序必须与 object_types 对齐。第 i 条边的 source/target 必须等于 object_types 的第 i / i+1 个对象类 id；方向由 source/target 与关系类定义一致性决定",
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "relation_type_id": {
+                        "description": "关系类 id（rt_id）",
+                        "type": "string"
+                      },
+                      "source_object_type_id": {
+                        "description": "起点对象类 id",
+                        "type": "string"
+                      },
+                      "target_object_type_id": {
+                        "description": "终点对象类 id",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "relation_type_id",
+                      "source_object_type_id",
+                      "target_object_type_id"
+                    ],
+                    "type": "object"
+                  },
+                  "minItems": 1,
+                  "type": "array"
+                }
+              },
+              "required": [
+                "object_types",
+                "relation_types"
+              ],
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kn_id",
+          "relation_type_paths",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "description": "路径子图返回体数组（每条路径对应一个子图响应）",
+            "items": {
+              "type": "object",
+              "properties": {
+                "_display": {
+                  "type": "string",
+                  "description": "给人看的展示名，由服务端按对象类的展示字段挑出。"
+                },
+                "_instance_id": {
+                  "type": "string",
+                  "description": "实例全局唯一 ID，可直接用于 query_instance_subgraph。"
+                },
+                "_instance_identity": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "构成该实例主键的字段值"
+                }
+              },
+              "additionalProperties": true,
+              "description": "其余键即该对象类的属性名，随对象类而变——先看 get_object_types / search_schema 的 data_properties，不要凭字段语义猜。"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "query_metric",
+      "title": "指标查询",
+      "group": "query",
+      "order": 250,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "analysis_dimensions": {
+            "description": "分析维度（按维度拆分结果），取值必须来自 related_metrics[].analysis_dimensions。",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "condition": {
+            "additionalProperties": true,
+            "description": "过滤条件，结构与 query_object_instance 的 condition 一致（field / operation / value / value_from，可 and/or 嵌套）。",
+            "type": "object"
+          },
+          "fill_null": {
+            "description": "区间序列查询时，无数据的步长点是否补空，默认 false。仅对序列查询有效，且必须同时给 time.start 与 time.end。",
+            "type": "boolean"
+          },
+          "having": {
+            "description": "对聚合结果过滤",
+            "properties": {
+              "field": {
+                "type": "string"
+              },
+              "operation": {
+                "type": "string"
+              },
+              "value": {}
+            },
+            "type": "object"
+          },
+          "kn_id": {
+            "description": "知识网络 ID。也可改用 X-Kn-ID 请求头传入。",
+            "type": "string"
+          },
+          "limit": {
+            "description": "返回条数上限",
+            "type": "integer"
+          },
+          "metric_id": {
+            "description": "指标 ID，取自 get_object_types 返回的 related_metrics[].id。不要自己编造。",
+            "type": "string"
+          },
+          "order_by": {
+            "description": "结果排序",
+            "items": {
+              "properties": {
+                "direction": {
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "type": "string"
+                },
+                "property": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          },
+          "time": {
+            "description": "时间窗。指标无时间维度（related_metrics[].time_dimension 为空）时可整体省略。注意：省略 instant 等同于 instant=false（序列查询），此时必须传 step。start 与 end 要么都传要么都不传。",
+            "properties": {
+              "end": {
+                "description": "结束时间，unix 秒",
+                "type": "integer"
+              },
+              "instant": {
+                "description": "true=取单点（当前值）；false 或省略=取序列，此时必须传 step。",
+                "type": "boolean"
+              },
+              "start": {
+                "description": "起始时间，unix 秒",
+                "type": "integer"
+              },
+              "step": {
+                "description": "序列步长（大小写不敏感）。序列查询必传；instant=true 时会被下游忽略。",
+                "enum": [
+                  "day",
+                  "week",
+                  "month",
+                  "quarter",
+                  "year"
+                ],
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "kn_id",
+          "metric_id",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "kn_id": {
+            "type": "string",
+            "description": "知识网络 ID"
+          },
+          "metric_id": {
+            "type": "string",
+            "description": "指标 ID"
+          },
+          "datas": {
+            "type": "array",
+            "description": "按 labels 分组的结果序列。未传 analysis_dimensions 时通常只有一条，labels 为空。",
+            "items": {
+              "type": "object",
+              "properties": {
+                "labels": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "该序列对应的维度取值"
+                },
+                "times": {
+                  "type": "array",
+                  "items": {},
+                  "description": "时间点（unix 秒）"
+                },
+                "time_strs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "时间点的可读形式"
+                },
+                "values": {
+                  "type": "array",
+                  "items": {},
+                  "description": "与 times 一一对应的指标值"
+                },
+                "growth_values": {
+                  "type": "array",
+                  "items": {}
+                },
+                "growth_rates": {
+                  "type": "array",
+                  "items": {}
+                },
+                "proportions": {
+                  "type": "array",
+                  "items": {}
+                }
+              }
+            }
+          },
+          "overall_ms": {
+            "type": "integer",
+            "description": "耗时（毫秒）"
+          }
+        }
+      }
+    },
+    {
+      "name": "query_object_instance",
+      "title": "实例查询",
+      "group": "query",
+      "order": 210,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "condition": {
+            "additionalProperties": false,
+            "description": "过滤条件。operation 必填。比较算子配 field + value + value_from（value 与 value_from 必须同时出现，value_from 仅支持 const）；逻辑算子（and/or）配 sub_conditions 递归嵌套同结构条件。无过滤条件时可整体省略 condition。\n算子分两类，判断依据不同：\n① 比较算子按属性 type 自行判断，不会出现在 condition_operations 里。字符串类（string/keyword/text）：== != in not_in > >= < <= like not_like regex；数值/日期时间类：== != in not_in > >= < <= range out_range（不支持 like/regex）；exist / not_exist 任意类型可用，且不带 value。\n② 索引算子以属性的 condition_operations 为准：含 match 才能全文匹配，含 knn 才能向量检索——它们取决于绑定资源上这个字段建没建全文/向量索引，从 type 推不出来。属性上没有 condition_operations 这个键，只说明该字段没建索引，不代表它不能过滤。condition_operations 里的 multi_match 只是「建了全文索引」的标记，本工具不支持该算子，用 match。\nvalue 形状：单值算子用单值；in / not_in 用数组；range 用 [min, max]，两端都闭；out_range 同样用 [min, max]，排除这个闭区间；exist / not_exist 不传 value。knn 另需 limit_key=k + limit_value=<近邻数>。\nlike / not_like 的 value 是字面子串，不是 SQL LIKE 模式：直接给要包含的文字，不要自己拼 %；未转义的 % 会被拒（要匹配 % 字符本身写 \\%），_ 按普通字符处理。regex 的锚定随资源存储而变：索引路径是整串全匹配，表类资源翻成不加锚的 SQL 正则（MariaDB `REGEXP`、PostgreSQL `~`）是搜索语义，所以「包含」一律写 .*词.*（两条路都成立）。字符串比较是否区分大小写同样由存储决定：索引路径区分，表类资源随列的排序规则（常见的 utf8mb4_*_ci 不区分），== / like / regex 都受影响，别拿大小写当筛选条件。",
+            "properties": {
+              "field": {
+                "description": "字段名（对象类属性）",
+                "type": "string"
+              },
+              "limit_key": {
+                "description": "仅 knn 使用：近邻数量的键，固定为 k。与 limit_value 同时出现。",
+                "enum": [
+                  "k"
+                ],
+                "type": "string"
+              },
+              "limit_value": {
+                "description": "仅 knn 使用：取多少个最近邻。不传时由服务端取默认值。",
+                "minimum": 1,
+                "type": "integer"
+              },
+              "operation": {
+                "description": "条件操作符。比较算子按属性 type 选（见 condition 说明）；索引算子 match / knn 以该属性的 condition_operations 为准。match 走全文索引（词法命中）；knn 走向量索引（语义/跨语言命中，字面不重合也能召回），两者是独立算子，要同时用就放进 or 的 sub_conditions。",
+                "enum": [
+                  "and",
+                  "or",
+                  "==",
+                  "!=",
+                  ">",
+                  ">=",
+                  "<",
+                  "<=",
+                  "in",
+                  "not_in",
+                  "like",
+                  "not_like",
+                  "range",
+                  "out_range",
+                  "regex",
+                  "exist",
+                  "not_exist",
+                  "match",
+                  "knn"
+                ],
+                "type": "string"
+              },
+              "sub_conditions": {
+                "description": "子条件数组，用于 and/or 组合（元素为同结构 condition）",
+                "items": {
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "value": {
+                "description": "字段值；与 value_from=const 同时使用。单值算子用单值；in/not_in 用数组；range 用 [min, max]（两元素同类型，两端都闭）；out_range 同样用 [min, max]，排除这个闭区间；like/not_like 用字面子串（不是 SQL LIKE 模式，不要自己拼 %，未转义的 % 会被拒，\\% 匹配 % 字符本身）；regex 用正则字符串（锚定与大小写敏感性随资源存储而变，「包含」写 .*词.*）；exist/not_exist 不传 value",
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "boolean"
+                        }
+                      ]
+                    },
+                    "type": "array"
+                  }
+                ]
+              },
+              "value_from": {
+                "description": "值来源，仅支持 const；必须与 value 同时使用",
+                "enum": [
+                  "const"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation"
+            ],
+            "type": "object"
+          },
+          "filters": {
+            "description": "扁平过滤简写：多个条件按 and 组合，等价于手写 condition 的 and 嵌套。覆盖最常见的「字段 op 值 [AND ...]」场景。与 condition 互斥（同传时 condition 优先）；需要 or 或多层嵌套时改用 condition。算子选择与取值规则同 condition：比较算子按属性 type 判断，match 以属性的 condition_operations 为准；like/not_like 的值是字面子串（不要自己拼 %，未转义的 % 会被拒），regex 的锚定与大小写敏感性随资源存储而变（「包含」写 .*词.*）。不带值的 exist/not_exist 与要配 limit_key/limit_value 的 knn 走不通这条简写，用 condition 写。",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "field": {
+                  "description": "对象类属性名",
+                  "type": "string"
+                },
+                "op": {
+                  "description": "比较算子：按属性 type 判断（字符串类才有 like/not_like/regex）；match 需该属性的 condition_operations 含 match。like/not_like 的值是字面子串（不要自己拼 %，未转义的 % 会被拒），regex 的锚定与大小写敏感性随资源存储而变（「包含」写 .*词.*）",
+                  "enum": [
+                    "==",
+                    "!=",
+                    ">",
+                    ">=",
+                    "<",
+                    "<=",
+                    "in",
+                    "not_in",
+                    "like",
+                    "not_like",
+                    "range",
+                    "out_range",
+                    "regex",
+                    "match"
+                  ],
+                  "type": "string"
+                },
+                "value": {
+                  "description": "字段值；in/not_in 用数组；range/out_range 用 [min, max]（两端都闭）",
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          }
+                        ]
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "field",
+                "op",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "include_logic_params": {
+            "description": "是否返回逻辑属性计算参数",
+            "type": "boolean"
+          },
+          "kn_id": {
+            "description": "知识网络 ID。也可改用 X-Kn-ID 请求头传入。",
+            "type": "string"
+          },
+          "limit": {
+            "description": "单页返回数量，默认 10，范围 1-10000",
+            "type": "integer"
+          },
+          "offset": {
+            "description": "偏移翻页（资源/vega 表源路径）：跳过前 N 条，支持跳到任意页。与 search_after 互斥（同传时 search_after 优先）。",
+            "type": "integer"
+          },
+          "ot_id": {
+            "description": "对象类型ID",
+            "type": "string"
+          },
+          "properties": {
+            "description": "指定返回的对象属性字段列表，默认返回所有属性",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          },
+          "search_after": {
+            "description": "游标分页（对象索引/数据视图路径）：传上一次响应返回的 search_after 取下一页；首次不传。仅顺翻，不跳页。",
+            "items": {},
+            "type": "array"
+          },
+          "sort": {
+            "description": "排序字段，按数组顺序依次比较（前一个相等才看后一个）。不传则由服务端按默认序返回，默认序不保证语义（不是「最新」也不是「最相关」），所以「最近的 N 条」「金额最高的 N 个」这类问题必须显式传 sort，不能靠 limit 截默认序。field 必须是该对象类的属性名，用 search_schema 或 get_object_types 确认后再传。",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "direction": {
+                  "description": "排序方向",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "type": "string"
+                },
+                "field": {
+                  "description": "排序字段（对象类属性名）",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "field",
+                "direction"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "kn_id",
+          "ot_id",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "datas": {
+            "type": "array",
+            "description": "实例列表",
+            "items": {
+              "type": "object",
+              "properties": {
+                "_display": {
+                  "type": "string",
+                  "description": "给人看的展示名，由服务端按对象类的展示字段挑出。"
+                },
+                "_instance_id": {
+                  "type": "string",
+                  "description": "实例全局唯一 ID，可直接用于 query_instance_subgraph。"
+                },
+                "_instance_identity": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "构成该实例主键的字段值"
+                }
+              },
+              "additionalProperties": true,
+              "description": "其余键即该对象类的属性名，随对象类而变——先看 get_object_types / search_schema 的 data_properties，不要凭字段语义猜。"
+            }
+          },
+          "total_count": {
+            "type": "integer",
+            "description": "满足过滤条件的实例总数，不受 limit 限制。判断「一共有多少条」读它，不要靠翻页累加。零命中时是 0（有值），不是字段缺失。字段缺失表示服务端本次没有计算总数——用 search_after 翻页时第二页起即如此，此时不能推断为 0，要总数就回到不带 search_after 的首次查询。"
+          },
+          "search_after": {
+            "type": "array",
+            "items": {},
+            "description": "下一页游标：非空时作为下次请求的 search_after 传入以取下一页；为空表示已无更多数据。"
+          }
+        }
+      }
+    },
+    {
+      "name": "read_skill_file",
+      "title": "读技能文件",
+      "group": "skill",
+      "order": 540,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "rel_path": {
+            "description": "技能包内相对路径，取自 get_skill_content 返回的 files[].rel_path。不接受包外路径（../ 会被拒）。",
+            "type": "string"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          },
+          "skill_id": {
+            "description": "技能 ID（取自 list_skills 或 find_skills 的 skill_id）。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "skill_id",
+          "rel_path",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "skill_id": {
+            "type": "string"
+          },
+          "rel_path": {
+            "type": "string"
+          },
+          "mime_type": {
+            "type": "string"
+          },
+          "file_type": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string",
+            "description": "文件正文。二进制文件不返回此字段，只回 message 说明。"
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "正文是否因超长被截断"
+          },
+          "message": {
+            "type": "string",
+            "description": "补充说明（二进制未返回正文 / 截断提示）"
+          }
+        }
+      }
+    },
+    {
+      "name": "run_code",
+      "title": "运行代码",
+      "group": "execution",
+      "order": 610,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "code": {
+            "description": "要执行的 Python 代码。只有 print 的内容会返回。",
+            "type": "string"
+          },
+          "timeout": {
+            "default": 60,
+            "description": "执行超时秒数",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "stdout": {
+            "type": "string",
+            "description": "标准输出。只有 print 的内容会回到这里。"
+          },
+          "stderr": {
+            "type": "string",
+            "description": "标准错误。退出码为 0 时也可能非空（库告警等）。"
+          },
+          "exit_code": {
+            "type": "integer",
+            "description": "退出码。非 0 表示脚本自身失败，报文在 stderr 里。"
+          }
+        },
+        "required": [
+          "stdout",
+          "exit_code"
+        ]
+      }
+    },
+    {
+      "name": "run_shell",
+      "title": "运行命令",
+      "group": "execution",
+      "order": 620,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "command": {
+            "description": "要执行的 shell 命令，交给 sh -c 执行，可以用管道和 &&。",
+            "type": "string"
+          },
+          "timeout": {
+            "default": 60,
+            "description": "执行超时秒数",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "command",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "stdout": {
+            "type": "string",
+            "description": "标准输出。只有 print 的内容会回到这里。"
+          },
+          "stderr": {
+            "type": "string",
+            "description": "标准错误。退出码为 0 时也可能非空（库告警等）。"
+          },
+          "exit_code": {
+            "type": "integer",
+            "description": "退出码。非 0 表示脚本自身失败，报文在 stderr 里。"
+          }
+        },
+        "required": [
+          "stdout",
+          "exit_code"
+        ]
+      }
+    },
+    {
+      "name": "run_sql",
+      "title": "SQL 查询",
+      "group": "query",
+      "order": 240,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "query_timeout": {
+            "description": "查询超时（秒），范围 1-3600，默认 60。可选。",
+            "type": "integer"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          },
+          "sql": {
+            "description": "只读 SQL（MySQL 方言）。标识符需要引用时用反引号；双引号是字符串字面量，不是标识符。表名必须用占位符 {{.<RESOURCE_ID>}} 引用，其中 <RESOURCE_ID> 替换成具体资源 id 的真实值——即 search_schema 返回的 data_source.id，或 list_resources 返回的 resource_id；点可选（{{id}} 与 {{.id}} 等价）。规则：① 禁止原样写 'resource_id'/'.resource_id' 等字面量，必须替换成真实 id；② 一张表对应一个 id，JOIN 多表时每个表用各自不同的 id；③ 列名用物理列名（search_schema 的 data_property.column，需 include_columns=true；或 describe_resource 返回），不是逻辑名。示例 ✗错（两表共用占位、且写成字面量）：FROM {{.resource_id}} g JOIN {{.resource_id}} t ON g.tournament_id=t.tournament_id ；✓对（先 search_schema 取 goals 与 tournaments 各自的 data_source.id，再逐表替换）：SELECT t.tournament_name, g.family_name, COUNT(*) AS c FROM {{.<goals的data_source.id>}} g JOIN {{.<tournaments的data_source.id>}} t ON g.tournament_id=t.tournament_id GROUP BY t.tournament_name, g.family_name ORDER BY c DESC。仅允许单条 SELECT。支持同一 catalog 内的 JOIN、WHERE、GROUP BY/HAVING、ORDER BY、LIMIT 和常用聚合函数（COUNT/SUM/AVG/MIN/MAX）。不支持 WITH / CTE、UNION / INTERSECT / EXCEPT（vega 会以 `VegaBackend.Query.InvalidParameter` 拒绝）、多语句、任何写入与 DDL、跨数据目录 join；子查询和窗口函数不在当前兼容性承诺内，请勿依赖。vega 会自动限量（最多 10000 行）。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sql",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "columns": {
+            "type": "array",
+            "description": "结果列信息",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "entries": {
+            "type": "array",
+            "description": "结果行",
+            "items": {
+              "type": "object",
+              "properties": {
+                "_display": {
+                  "type": "string",
+                  "description": "给人看的展示名，由服务端按对象类的展示字段挑出。"
+                },
+                "_instance_id": {
+                  "type": "string",
+                  "description": "实例全局唯一 ID，可直接用于 query_instance_subgraph。"
+                },
+                "_instance_identity": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "构成该实例主键的字段值"
+                }
+              },
+              "additionalProperties": true,
+              "description": "其余键即该对象类的属性名，随对象类而变——先看 get_object_types / search_schema 的 data_properties，不要凭字段语义猜。"
+            }
+          },
+          "total_count": {
+            "type": "integer",
+            "description": "返回行数"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "非致命告警（如资源已弃用）"
+          }
+        }
+      }
+    },
+    {
+      "name": "search_instance",
+      "title": "实例语义检索",
+      "group": "query",
+      "order": 205,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "concept_groups": {
+            "description": "限定召回范围到指定的 BKN 概念分组；不传则在整个知识网络内召回。",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "exclude_object_types": {
+            "description": "从召回范围里排除这几个对象类，同样只取对象类 id。适合上一轮返回里混进了噪音对象类、想重跑一次时用；与 object_types 同时给且有重叠时，以排除为准。",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "include_object_types": {
+            "default": true,
+            "description": "是否附带命中对象类的精简定义（属性名与类型），默认附带。关掉只在你已经拿着这些对象类的 Schema 时才划算——否则要读懂返回的实例还得再调一次 get_object_types。",
+            "type": "boolean"
+          },
+          "kn_id": {
+            "description": "知识网络 ID。也可改用 X-Kn-ID 请求头传入。",
+            "type": "string"
+          },
+          "max_instances_per_type": {
+            "default": 5,
+            "description": "每个对象类最多返回几条实例。",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "max_object_types": {
+            "default": 10,
+            "description": "参与实例召回的对象类数量上限。调大能覆盖更多对象类，代价是每多一个对象类多一轮下游查询。 这是**严格上限**：概念召回为保持 Schema 自洽会多带回一些对象类（关系端点补齐），它们仍会出现在 object_types 里，但不会被发起实例查询。",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "object_types": {
+            "description": "把召回范围钉死在这几个对象类上，只取对象类 id（例如 material），不接受名称。id 来自 search_schema 响应的 concept_id、search_instance 响应的 object_type_id 或 get_kn_detail 的 object_types[].id。不传则不限。过滤发生在相关性排序与 max_object_types 截断之前，因此点名的对象类不会因为排名靠后被挤掉。",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "query": {
+            "description": "自然语言问题或关键词。整句直接传，不必拆成字段条件——向量通道吃整句，全文通道由分析器分词。",
+            "type": "string"
+          },
+          "rerank": {
+            "default": false,
+            "description": "是否对召回结果做语义精排。默认关。开启后由 cross-encoder 逐条判断 query 与实例的相关性并**重排返回顺序**——它能分辨「欠款」与「还款」这类名次融合分不出的差异。代价是多一次模型调用（约 100~400ms），且要求部署里注册了精排小模型；模型不可用时自动退回原顺序，不报错。要精度就开，要快就别开。",
+            "type": "boolean"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "description": "命中的实例，**按相关性全局降序**排列，跨对象类统一排序，不再按对象类分组。消费时请按返回顺序（或 rank 字段）；各个分数字段是解释这个顺序的证据，量纲彼此不同，不要拿来自行重排。",
+            "items": {
+              "type": "object",
+              "properties": {
+                "object_type_id": {
+                  "type": "string",
+                  "description": "该实例所属对象类 ID，可直接喂给 get_object_types / query_object_instance。"
+                },
+                "object_type_name": {
+                  "type": "string"
+                },
+                "properties": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "实例属性。字段含义见 search_schema / get_object_types 返回的对象类定义。"
+                },
+                "rank": {
+                  "type": "integer",
+                  "description": "本条在返回列表中的位次，从 1 开始。**排序请只按 rank**：哪一个分数决定了这个位次取决于请求（融合分，或者精排开启时的模型分），按任何单一分数字段自行重排都可能得到与服务端不同的顺序。"
+                },
+                "score": {
+                  "type": "number",
+                  "description": "相关性分，也是默认排序依据。索引召回路径上它是 RRF 融合的名次分：「某一路排第一」=1.0，「两路都第一」=2.0，表达两条召回通道的一致程度，**不是绝对相关度**——某通道的第一名恒得 1.0，哪怕整个对象类都与 query 无关。所有通道都拿不到索引分时改走本地兜底档位（0/0.3/0.5/0.85），此时同时带 heuristic_score 作标记，两种刻度不可互相比较。 运维逃生档 enable_rrf_fusion=false 下不做融合，score 是 OpenSearch 原始索引分（无上界）：该对象类没有向量字段时它就是纯 BM25，会同时写进 bm25_score；两类算子进了同一条查询时它是两种量纲相加，归不到任何一路，此时 bm25_score 与 knn_score 都不出现——这正是该档只作逃生用的原因之一。"
+                },
+                "bm25_score": {
+                  "type": "number",
+                  "description": "全文通道的原始 OpenSearch `_score`（BM25）。**无上界**，且随语料规模、文档长度、query 长度漂移，只能用于解读单次结果，不能跨 query、跨知识网络比较，也不能当相关性阈值。"
+                },
+                "knn_score": {
+                  "type": "number",
+                  "description": "向量通道的相似度，同一 embedding 模型下取值 0~1。它是唯一一个跨 query 大致可比的原始分。"
+                },
+                "reranker_score": {
+                  "type": "number",
+                  "description": "cross-encoder 精排模型给出的相关度，0~1。仅当精排真的跑过并给这一条打了分时才出现——精排窗口（默认前 50 条）之外的行保持融合序、不带此字段。**这个字段是否存在，也是判断「精排生效」还是「模型不可用静默退回融合序」的唯一依据。**"
+                },
+                "heuristic_score": {
+                  "type": "number",
+                  "description": "本地兜底打分（0/0.3/0.5/0.85 档），仅在所有通道都没拿到索引 `_score`、名次无意义时出现。出现时 score 携带的就是这个档位分，与融合分不共享刻度，不要互相比较。"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "object_types": {
+            "type": "array",
+            "description": "读懂 nodes 所需的对象类精简定义，**只含真正出了实例的那些对象类**，不是召回扫过的全部。include_object_types=false 时不返回。",
+            "items": {
+              "type": "object",
+              "properties": {
+                "concept_id": {
+                  "type": "string",
+                  "description": "对象类 / 关系类 ID。注意本工具的 action_types 用的是 id 而非 concept_id。"
+                },
+                "concept_name": {
+                  "type": "string",
+                  "description": "名称。同上，action_types 那一项叫 name。"
+                },
+                "comment": {
+                  "type": "string",
+                  "description": "说明文字，通常含该类的属性表。"
+                },
+                "data_source": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "绑定的数据资源 {type, id, name}；id 可作为 run_sql 的 {{.<resource_id>}} 占位符。"
+                },
+                "data_properties": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "description": "数据属性 [{name, type, condition_operations}]；condition_operations 决定该属性能否用 match / knn 过滤。"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "message": {
+            "type": "string",
+            "description": "检索层的说明，两种情况下出现：① 没有命中时，说明为什么是空的；② **有结果、但这些结果本身需要说明**时——例如部署配置了相关性阈值，却因精排模型不可用而没能执行，此时下面的实例是未经相关性过滤的召回结果。**拿到非空 nodes 也要读这个字段**，它区分「筛过的结果」和「没筛成的结果」。"
+          }
+        },
+        "required": [
+          "nodes"
+        ]
+      }
+    },
+    {
+      "name": "search_schema",
+      "title": "Schema 探索",
+      "group": "discovery",
+      "order": 130,
+      "annotations": {},
+      "inputSchema": {
+        "properties": {
+          "bkn_context": {
+            "additionalProperties": false,
+            "description": "BKN Trace managed context. Use only IDs returned by lifecycle tools.",
+            "properties": {
+              "business_refs": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "ref_id": {
+                      "type": "string"
+                    },
+                    "ref_type": {
+                      "enum": [
+                        "knowledge_network",
+                        "object_type",
+                        "object_instance",
+                        "property",
+                        "relation_type",
+                        "data_resource",
+                        "metric",
+                        "logic",
+                        "function",
+                        "action_type",
+                        "action_instance"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ref_type",
+                    "ref_id"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "causation_event_ids": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 64,
+                "type": "array"
+              },
+              "conversation_id": {
+                "type": "string"
+              },
+              "interaction_id": {
+                "type": "string"
+              },
+              "parent_operation_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "conversation_id",
+              "interaction_id"
+            ],
+            "type": "object"
+          },
+          "enable_rerank": {
+            "default": true,
+            "description": "是否对关系类型启用 Rerank",
+            "type": "boolean"
+          },
+          "include_columns": {
+            "default": false,
+            "description": "是否在每个对象类的 data_property 上额外返回物理列名 column（取自 mapped_field）。写 run_sql 时列名要用 column（物理列），而非 name（逻辑名）——二者可不同，且同一资源可被多个对象类用不同逻辑名映射。默认 false 以保持响应精简，准备写 SQL 时再开启。",
+            "type": "boolean"
+          },
+          "kn_id": {
+            "description": "知识网络 ID。也可改用 X-Kn-ID 请求头传入。",
+            "type": "string"
+          },
+          "max_concepts": {
+            "default": 10,
+            "description": "Schema 候选规模上限",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "query": {
+            "description": "用户查询问题或关键词，多个关键词之间用空格隔开",
+            "type": "string"
+          },
+          "response_format": {
+            "default": "toon",
+            "description": "文本格式：json 或 toon，默认 toon",
+            "enum": [
+              "json",
+              "toon"
+            ],
+            "type": "string"
+          },
+          "schema_brief": {
+            "default": true,
+            "description": "是否返回精简 Schema（MCP 默认 true）。精简版保留写查询所需的 data_source.id 与属性 name/type，省去属性 comment、主键、标签，体积约省 70%；需要属性备注、主键或标签时显式传 false。注意：condition_operations 不受本开关影响——MCP 面两种模式下都只列**索引带来的**算子（match / multi_match / knn，取决于该字段建没建全文/向量索引，从属性类型推不出来），没有这类能力的字段不带这个键。比较算子（==、!=、in、like、range 等）按属性 type 自行判断，服务端不下发，详见 query_object_instance 的 condition 说明。",
+            "type": "boolean"
+          },
+          "search_scope": {
+            "description": "Schema 探索范围。至少需要开启一种概念类型；不传时默认四类全开。concept_groups 用于按 BKN 概念分组限定 Schema 召回范围。",
+            "properties": {
+              "concept_groups": {
+                "description": "BKN 概念分组 ID 列表，用于限定对象类、关系类、动作类和指标类的 Schema 召回范围；不传或为空表示不限定分组。分组语义由 BKN 完成（ContextLoader 直接调用 BKN 分组搜索接口并把列表透传下去）。当传入的分组在该知识网络中不存在时，BKN 当前会返回 5xx 错误（如 'BknBackend.ObjectType.InternalError' 含 'all concept group not found ...'），本工具会直接向上透传该错误而不是返回空结果，调用方据此区分'分组不存在'与'分组合法但范围内无概念'。",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "include_action_types": {
+                "default": true,
+                "description": "是否返回动作类",
+                "type": "boolean"
+              },
+              "include_metric_types": {
+                "default": true,
+                "description": "是否返回指标类",
+                "type": "boolean"
+              },
+              "include_object_types": {
+                "default": true,
+                "description": "是否返回对象类",
+                "type": "boolean"
+              },
+              "include_relation_types": {
+                "default": true,
+                "description": "是否返回关系类",
+                "type": "boolean"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "kn_id",
+          "query",
+          "bkn_context"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "object_types": {
+            "type": "array",
+            "description": "对象类型列表",
+            "items": {
+              "type": "object",
+              "properties": {
+                "concept_id": {
+                  "type": "string",
+                  "description": "对象类 / 关系类 ID。注意本工具的 action_types 用的是 id 而非 concept_id。"
+                },
+                "concept_name": {
+                  "type": "string",
+                  "description": "名称。同上，action_types 那一项叫 name。"
+                },
+                "comment": {
+                  "type": "string",
+                  "description": "说明文字，通常含该类的属性表。"
+                },
+                "data_source": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "绑定的数据资源 {type, id, name}；id 可作为 run_sql 的 {{.<resource_id>}} 占位符。"
+                },
+                "data_properties": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "description": "数据属性 [{name, type, condition_operations}]；condition_operations 决定该属性能否用 match / knn 过滤。"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "relation_types": {
+            "type": "array",
+            "description": "关系类型列表",
+            "items": {
+              "type": "object",
+              "properties": {
+                "concept_id": {
+                  "type": "string",
+                  "description": "关系类 ID"
+                },
+                "concept_name": {
+                  "type": "string",
+                  "description": "关系名"
+                },
+                "source_object_type_id": {
+                  "type": "string",
+                  "description": "起点对象类 ID"
+                },
+                "target_object_type_id": {
+                  "type": "string",
+                  "description": "终点对象类 ID"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "action_types": {
+            "type": "array",
+            "description": "动作类型列表",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "行动类 ID。注意与同一响应里 object_types 的 concept_id 命名不一致。"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "行动名。同上，与 object_types 的 concept_name 不一致。"
+                },
+                "object_type_id": {
+                  "type": "string",
+                  "description": "所属对象类 ID"
+                },
+                "object_type_name": {
+                  "type": "string",
+                  "description": "所属对象类名"
+                },
+                "comment": {
+                  "type": "string",
+                  "description": "说明"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "metric_types": {
+            "type": "array",
+            "description": "指标类型列表",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "指标 ID，可传给 query_metric"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "指标名"
+                }
+              },
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    }
+  ],
+  "note": "OpenBKN EE 0.1.4 Context Loader tool catalogue captured in R0a (2026-09-28); platform address replaced with an example."
+}

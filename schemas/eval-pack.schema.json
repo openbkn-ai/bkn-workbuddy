@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openbkn.ai/schemas/agent-integration/eval-pack.v1.json",
+  "title": "OpenBKN agent-integration evaluation pack v1",
+  "description": "Shared by the WorkBuddy, OpenClaw and Hermes adapters. Test-runner only: never expose expectFacts, forbidden or assertions to the model. TypeScript twin: packages/core/src/eval-pack.ts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "dataset_version", "network", "cases"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "dataset_version": { "type": "string", "minLength": 1 },
+    "network": { "type": "string", "minLength": 1 },
+    "source": { "type": "string" },
+    "cases": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/case" } }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,63}$" },
+    "text": { "type": "string", "minLength": 1, "pattern": "\\S" },
+    "texts": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+    "tool": {
+      "enum": ["get_kn_detail", "search_schema", "get_object_types", "get_relation_types", "query_object_instance", "query_instance_subgraph", "query_metric", "get_logic_properties_values"]
+    },
+    "tools": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/tool" } },
+    "turn": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "question", "expectFacts", "expectTools", "forbidden"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "question": { "$ref": "#/$defs/text" },
+        "expectFacts": { "$ref": "#/$defs/texts" },
+        "expectTools": { "type": "array", "items": { "$ref": "#/$defs/tool" } },
+        "forbidden": { "$ref": "#/$defs/texts" },
+        "assertions": { "type": "array", "items": { "$ref": "#/$defs/assertion" } }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "group", "question", "expectFacts", "expectTools", "forbidden"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "group": { "enum": ["positive", "negative"] },
+        "question": { "$ref": "#/$defs/text" },
+        "expectFacts": { "$ref": "#/$defs/texts" },
+        "expectTools": { "type": "array", "items": { "$ref": "#/$defs/tool" } },
+        "forbidden": { "$ref": "#/$defs/texts" },
+        "assertions": { "type": "array", "items": { "$ref": "#/$defs/assertion" } },
+        "precondition": { "enum": ["credential-invalid", "platform-unreachable", "network-unauthorized"] },
+        "requires_real_authorization": { "type": "boolean" },
+        "baseline": {
+          "type": "object",
+          "required": ["verified"],
+          "properties": { "verified": { "type": "boolean" }, "method": { "type": "string" }, "verified_at": { "type": "string" } }
+        },
+        "followups": { "type": "array", "items": { "$ref": "#/$defs/turn" } }
+      },
+      "if": { "required": ["precondition"] },
+      "then": { "properties": { "group": { "const": "negative" } } }
+    },
+    "assertion": {
+      "oneOf": [
+        { "type": "object", "additionalProperties": false, "required": ["type", "any_of"], "properties": { "type": { "const": "tool_called" }, "any_of": { "$ref": "#/$defs/tools" } } },
+        { "type": "object", "additionalProperties": false, "required": ["type", "tools"], "properties": { "type": { "const": "tool_not_called" }, "tools": { "$ref": "#/$defs/tools" } } },
+        { "type": "object", "additionalProperties": false, "required": ["type", "all_of"], "properties": { "type": { "const": "answer_contains" }, "all_of": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/text" } } } },
+        { "type": "object", "additionalProperties": false, "required": ["type", "any_of"], "properties": { "type": { "const": "answer_not_contains" }, "any_of": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/text" } } } },
+        { "type": "object", "additionalProperties": false, "required": ["type", "pattern"], "properties": { "type": { "const": "answer_matches" }, "pattern": { "$ref": "#/$defs/text" } } },
+        { "type": "object", "additionalProperties": false, "required": ["type", "equals"], "properties": { "type": { "const": "interaction_count" }, "equals": { "type": "integer", "minimum": 0 } } },
+        { "type": "object", "additionalProperties": false, "required": ["type", "equals"], "properties": { "type": { "const": "outcome" }, "equals": { "enum": ["completed", "cancelled", "failed", "none"] } } },
+        { "type": "object", "additionalProperties": false, "required": ["type", "ref_type", "name"], "properties": { "type": { "const": "provenance_ref" }, "ref_type": { "$ref": "#/$defs/text" }, "name": { "$ref": "#/$defs/text" } } },
+        { "type": "object", "additionalProperties": false, "required": ["type", "code"], "properties": { "type": { "const": "adapter_status" }, "code": { "$ref": "#/$defs/text" } } }
+      ]
+    }
+  }
+}

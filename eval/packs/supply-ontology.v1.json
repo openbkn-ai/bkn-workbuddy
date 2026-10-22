@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "dataset_version": "bkn-samples@7b5b59ca106d4d563cfcc03ffc85b2e3c3b7d9f6/supply_ontology_hand",
+  "network": "supply_ontology_hand",
+  "source": "Migrated from bkn-dsh@3f99235508b20b2587f4a5f9cfa3badecf769ff5 docs/eval/supply-ontology.yaml (2026-09-29). Descriptive expectTools entries were mapped to read-v1 tools by review, see eval/packs/README.md. Facts re-checked by R0a direct queries on 2026-09-28 where marked.",
+  "cases": [
+    {
+      "id": "orders-count-status",
+      "group": "positive",
+      "question": "382-000005 有多少张销售订单？什么状态？",
+      "expectFacts": [
+        "销售订单共 40 张",
+        "状态只有「已确认」一种",
+        "明细单号落在 SO0000001–SO0000020 与 SO0000501–SO0000520 两个区间"
+      ],
+      "expectTools": ["query_object_instance", "query_metric"],
+      "forbidden": ["编造的数量或状态（与上述基准不符）", "声称存在其他状态的订单"],
+      "assertions": [
+        { "type": "tool_called", "any_of": ["query_object_instance", "query_metric"] },
+        { "type": "answer_matches", "pattern": "(?<!\\d)40(?!\\d)" },
+        { "type": "answer_contains", "all_of": ["已确认"] },
+        { "type": "interaction_count", "equals": 1 },
+        { "type": "outcome", "equals": "completed" }
+      ],
+      "baseline": { "verified": true, "method": "M5 / 2026-09-20 MySQL check; re-checked by R0a query_object_instance and query_metric", "verified_at": "2026-09-28" },
+      "followups": [
+        {
+          "id": "orders-count-status-basis",
+          "question": "这个数量是按什么口径统计的？依据来自哪里？",
+          "expectFacts": ["说明按产品编码 382-000005 统计销售订单", "指出依据来自平台的销售订单数据或销售订单数指标"],
+          "expectTools": [],
+          "forbidden": ["编造未查询过的数据来源"],
+          "assertions": [
+            { "type": "answer_contains", "all_of": ["销售订单"] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "finished-goods-inventory",
+      "group": "positive",
+      "question": "382-000005 在各成品仓的可用库存？",
+      "expectFacts": [
+        "3 个成品仓合计 534",
+        "苏州 325 / 乌鲁木齐 127 / 哈尔滨 82",
+        "明确说明口径（仅成品仓，其他仓另计）"
+      ],
+      "expectTools": ["query_object_instance", "query_metric"],
+      "forbidden": ["把非成品仓库存计入合计", "与基准不符的仓间拆分"],
+      "assertions": [
+        { "type": "tool_called", "any_of": ["query_object_instance", "query_metric"] },
+        { "type": "answer_matches", "pattern": "(?<!\\d)534(?!\\d)" },
+        { "type": "answer_matches", "pattern": "(?<!\\d)325(?!\\d)" },
+        { "type": "answer_matches", "pattern": "(?<!\\d)127(?!\\d)" },
+        { "type": "answer_matches", "pattern": "(?<!\\d)82(?!\\d)" },
+        { "type": "answer_contains", "all_of": ["成品仓"] },
+        { "type": "outcome", "equals": "completed" }
+      ],
+      "baseline": { "verified": true, "method": "M5 / 2026-09-20 MySQL check; re-checked by R0a query_object_instance and query_metric (by warehouse)", "verified_at": "2026-09-28" }
+    },
+    {
+      "id": "standard-lead-time",
+      "group": "positive",
+      "question": "382-000005 的标准交期？",
+      "expectFacts": ["生产固定提前期 = 1 天（自制件口径）", "与 erp_material 口径一致"],
+      "expectTools": ["query_object_instance"],
+      "forbidden": ["无口径说明的单一天数"],
+      "assertions": [
+        { "type": "tool_called", "any_of": ["query_object_instance"] },
+        { "type": "answer_matches", "pattern": "(?<!\\d)1\\s*天" },
+        { "type": "answer_contains", "all_of": ["自制"] },
+        { "type": "outcome", "equals": "completed" }
+      ],
+      "baseline": { "verified": true, "method": "M5 / 2026-09-20 MySQL check; re-checked by R0a query_object_instance (material)", "verified_at": "2026-09-28" }
+    },
+    {
+      "id": "bom-structure",
+      "group": "positive",
+      "question": "382-000005 的 BOM 构成是什么？",
+      "expectFacts": ["列出 BOM 组件与层级结构", "组件数量与名称来自平台数据并注明来源"],
+      "expectTools": ["query_object_instance", "query_instance_subgraph"],
+      "forbidden": ["未注明来源的组件清单"],
+      "assertions": [
+        { "type": "tool_called", "any_of": ["query_object_instance", "query_instance_subgraph"] },
+        { "type": "provenance_ref", "ref_type": "object_type", "name": "产品BOM" },
+        { "type": "outcome", "equals": "completed" }
+      ],
+      "baseline": { "verified": false, "method": "R0a: 507 BOM rows, 400 primary (alt_priority = 0) over levels 0–5; not independently verified" }
+    },
+    {
+      "id": "purchase-flow",
+      "group": "positive",
+      "question": "382-000005 当前有哪些未结的采购申请和采购订单？",
+      "expectFacts": ["分别列出采购申请与采购订单（或明确说明无未结项）", "状态与单号来自平台数据"],
+      "expectTools": ["query_object_instance", "query_instance_subgraph"],
+      "forbidden": ["混淆采购申请与采购订单两类单据"],
+      "assertions": [
+        { "type": "tool_called", "any_of": ["query_object_instance", "query_instance_subgraph"] },
+        { "type": "outcome", "equals": "completed" }
+      ],
+      "baseline": { "verified": false, "method": "R0a: 69 purchase requisitions via the forecast→MRP chain, all closed; the purchase-order link field and the empty subgraph result are unresolved" }
+    },
+    {
+      "id": "sales-order-detail",
+      "group": "positive",
+      "question": "列出 382-000005 的销售订单明细。",
+      "expectFacts": ["单号、数量、状态逐条对应平台数据", "合计与前述总量一致（40 张）"],
+      "expectTools": ["query_object_instance"],
+      "forbidden": ["明细条数与合计矛盾"],
+      "assertions": [
+        { "type": "tool_called", "any_of": ["query_object_instance"] },
+        { "type": "answer_contains", "all_of": ["SO0000001"] },
+        { "type": "provenance_ref", "ref_type": "object_type", "name": "销售订单" },
+        { "type": "outcome", "equals": "completed" }
+      ],
+      "baseline": { "verified": true, "method": "R0a query_object_instance: 40 rows, all 已确认, SO0000001…SO0000520", "verified_at": "2026-09-28" }
+    },
+    {
+      "id": "missing-object",
+      "group": "negative",
+      "question": "物料 999-999999 的库存和订单情况？",
+      "expectFacts": ["明确回答无该物料/无数据", "不给出任何非零业务数值（「查询命中 0 行」一类的无数据证明不算）"],
+      "expectTools": ["query_object_instance"],
+      "forbidden": ["编造的库存或订单数字", "崩溃或空回复"],
+      "assertions": [
+        { "type": "tool_called", "any_of": ["query_object_instance"] },
+        { "type": "outcome", "equals": "completed" }
+      ],
+      "baseline": { "verified": true, "method": "R0a (fixed probe, re-run): material, inventory and sales-order queries succeed with 0 rows", "verified_at": "2026-09-28" }
+    },
+    {
+      "id": "invalid-token",
+      "group": "negative",
+      "question": "382-000005 有多少张销售订单？",
+      "precondition": "credential-invalid",
+      "expectFacts": ["明确的认证失败提示（引导重新登录/刷新 Token）", "不返回部分或缓存业务数据"],
+      "expectTools": [],
+      "forbidden": ["静默失败或伪装成功", "输出任何业务数值"],
+      "assertions": [
+        { "type": "adapter_status", "code": "AUTHENTICATION_REQUIRED" },
+        { "type": "interaction_count", "equals": 0 },
+        { "type": "answer_not_contains", "any_of": ["已确认"] }
+      ]
+    },
+    {
+      "id": "platform-unreachable",
+      "group": "negative",
+      "question": "382-000005 有多少张销售订单？",
+      "precondition": "platform-unreachable",
+      "expectFacts": ["明确的连接失败提示", "会话仍可用，平台恢复后可继续其他操作"],
+      "expectTools": [],
+      "forbidden": ["无响应或永久挂死", "编造数据"],
+      "assertions": [
+        { "type": "adapter_status", "code": "PLATFORM_UNAVAILABLE" },
+        { "type": "interaction_count", "equals": 0 }
+      ]
+    },
+    {
+      "id": "unauthorized-network",
+      "group": "negative",
+      "question": "382-000005 有多少张销售订单？",
+      "precondition": "network-unauthorized",
+      "requires_real_authorization": true,
+      "expectFacts": ["明确的权限不足提示", "不泄露该网络内的任何业务数据"],
+      "expectTools": [],
+      "forbidden": ["越权返回数据"],
+      "assertions": [
+        { "type": "interaction_count", "equals": 0 },
+        { "type": "answer_not_contains", "any_of": ["已确认"] }
+      ]
+    }
+  ]
+}

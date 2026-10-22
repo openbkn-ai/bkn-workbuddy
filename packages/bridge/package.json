@@ -1,0 +1,26 @@
+{
+  "name": "@bkn-workbuddy/bridge",
+  "version": "0.0.0",
+  "private": true,
+  "description": "WorkBuddy-side bridge of the OpenBKN adapter: MCP server, hook intake and the client of the signed credential gateway.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test dist/test/*.test.js"
+  },
+  "dependencies": {
+    "@bkn-workbuddy/core": "0.0.0"
+  },
+  "bin": {
+    "bkn-workbuddy-bridge": "./dist/src/cli.js"
+  }
+}
